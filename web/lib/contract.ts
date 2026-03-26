@@ -2,7 +2,7 @@ import { createPublicClient, http, formatUnits, type Address } from 'viem';
 import { abstract } from 'viem/chains';
 import abi from '../abi.json';
 
-export const CONTRACT_ADDRESS = '0xc36BF8e23BE1bB9cb7062b35D17aCcDBA8D90651' as const;
+export const CONTRACT_ADDRESS = '0x52EE43528BF63f22623834E57c79a51B45cB2D1D' as const;
 export const USDC_ADDRESS = '0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1' as const;
 export const ABSCAN_TX = 'https://abscan.org/tx';
 export const ABSCAN_ADDR = 'https://abscan.org/address';
@@ -61,6 +61,7 @@ export type JobData = {
   description: string;
   deliverable: string;
   status: number;
+  providerAgentId: bigint;
 };
 
 export async function getBattleCount(): Promise<number> {
@@ -93,7 +94,7 @@ export async function getJob(jobId: bigint): Promise<JobData> {
     ...contractConfig,
     functionName: 'getJob',
     args: [jobId],
-  }) as [string, string, string, bigint, bigint, string, string, number];
+  }) as [string, string, string, bigint, bigint, string, string, number, bigint];
   return {
     client: result[0],
     provider: result[1],
@@ -103,6 +104,7 @@ export async function getJob(jobId: bigint): Promise<JobData> {
     description: result[5],
     deliverable: result[6],
     status: result[7],
+    providerAgentId: result[8],
   };
 }
 

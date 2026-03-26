@@ -18,7 +18,6 @@ contract Deploy is Script {
         AgentArena arena = new AgentArena(usdc);
         console2.log("AgentArena:", address(arena));
 
-        // Approve enough for multiple battles
         IERC20(usdc).approve(address(arena), totalBudget * 100);
         console2.log("Approved USDC spend");
 
@@ -49,11 +48,14 @@ contract RunBattle is Script {
 
         AgentArena arena = AgentArena(arenaAddr);
 
-        // 1. Client creates battle
+        // 1. Client creates battle (with ERC-8004 agent IDs: 0 = unregistered)
         vm.startBroadcast(pkClient);
         (uint256 battleId, uint256 jobIdA, uint256 jobIdB) = arena.createBattle(
             botA, botB, evaluator, totalBudget,
-            block.timestamp + deadlineSeconds, description
+            block.timestamp + deadlineSeconds,
+            string(abi.encodePacked(description)),
+            0, // agentIdA (ERC-8004)
+            0  // agentIdB (ERC-8004)
         );
         vm.stopBroadcast();
 
@@ -63,17 +65,17 @@ contract RunBattle is Script {
 
         // 2. Bot A submits
         vm.startBroadcast(pkBotA);
-        arena.submit(jobIdA, submitAHash);
+        arena.submit(jobIdA, submitAHash, "");
         vm.stopBroadcast();
         console2.log("Bot A submitted");
 
         // 3. Bot B submits
         vm.startBroadcast(pkBotB);
-        arena.submit(jobIdB, submitBHash);
+        arena.submit(jobIdB, submitBHash, "");
         vm.stopBroadcast();
         console2.log("Bot B submitted");
 
-        // 4. Evaluator resolves — jobIdA wins
+        // 4. Evaluator resolves
         vm.startBroadcast(pkVerifier);
         arena.resolveBattle(battleId, jobIdA, reason);
         vm.stopBroadcast();

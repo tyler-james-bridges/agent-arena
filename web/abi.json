@@ -93,6 +93,11 @@
         "name": "reason",
         "type": "bytes32",
         "internalType": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -129,8 +134,18 @@
       },
       {
         "name": "description",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "agentIdA",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "agentIdB",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
@@ -178,8 +193,13 @@
       },
       {
         "name": "description",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "providerAgentId",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
@@ -204,6 +224,11 @@
         "name": "expectedBudget",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -291,8 +316,8 @@
       },
       {
         "name": "description",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "type": "string",
+        "internalType": "string"
       },
       {
         "name": "deliverable",
@@ -303,6 +328,11 @@
         "name": "status",
         "type": "uint8",
         "internalType": "enum AgentArena.Status"
+      },
+      {
+        "name": "providerAgentId",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -377,8 +407,8 @@
       },
       {
         "name": "description",
-        "type": "bytes32",
-        "internalType": "bytes32"
+        "type": "string",
+        "internalType": "string"
       },
       {
         "name": "deliverable",
@@ -389,6 +419,11 @@
         "name": "status",
         "type": "uint8",
         "internalType": "enum AgentArena.Status"
+      },
+      {
+        "name": "providerAgentId",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -419,6 +454,11 @@
         "name": "reason",
         "type": "bytes32",
         "internalType": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -460,6 +500,11 @@
         "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -478,6 +523,16 @@
         "name": "provider",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "agentId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -496,6 +551,11 @@
         "name": "deliverable",
         "type": "bytes32",
         "internalType": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -661,9 +721,9 @@
       },
       {
         "name": "description",
-        "type": "bytes32",
+        "type": "string",
         "indexed": false,
-        "internalType": "bytes32"
+        "internalType": "string"
       }
     ],
     "anonymous": false
@@ -690,6 +750,12 @@
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
+      },
+      {
+        "name": "client",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "amount",
@@ -765,6 +831,12 @@
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "agentId",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false

@@ -5,8 +5,7 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
 /// @title AgentArena — ERC-8183 compliant agent commerce
 /// @notice Two-job competitive arena built on ERC-8183 primitives.
-///         Client creates paired jobs, two providers compete,
-///         evaluator completes winner (who takes full prize) and rejects loser.
+///         Aligned with the official erc-8183/base-contracts reference implementation.
 contract AgentArena {
     // ─── ERC-8183 State Machine ───
     // Open → Funded → Submitted → Completed | Rejected | Expired
@@ -25,9 +24,10 @@ contract AgentArena {
         address evaluator;
         uint256 budget;
         uint256 expiredAt;
-        bytes32 description;
+        string description;
         bytes32 deliverable;
         Status status;
+        uint256 providerAgentId; // ERC-8004 agent identity
     }
 
     struct Battle {
@@ -48,11 +48,20 @@ contract AgentArena {
     mapping(uint256 => Battle) public battles;
     mapping(uint256 => uint256) public jobToBattle;
 
+    // ─── Reentrancy Guard ───
+    uint256 private _locked = 1;
+    modifier nonReentrant() {
+        require(_locked == 1, "REENTRANCY");
+        _locked = 2;
+        _;
+        _locked = 1;
+    }
+
     // ─── ERC-8183 Events ───
-    event JobCreated(uint256 indexed jobId, address indexed client, address provider, address evaluator, uint256 budget, uint256 expiredAt, bytes32 description);
-    event ProviderSet(uint256 indexed jobId, address indexed provider);
+    event JobCreated(uint256 indexed jobId, address indexed client, address provider, address evaluator, uint256 budget, uint256 expiredAt, string description);
+    event ProviderSet(uint256 indexed jobId, address indexed provider, uint256 agentId);
     event BudgetSet(uint256 indexed jobId, uint256 amount);
-    event JobFunded(uint256 indexed jobId, uint256 amount);
+    event JobFunded(uint256 indexed jobId, address indexed client, uint256 amount);
     event JobSubmitted(uint256 indexed jobId, address indexed provider, bytes32 deliverable);
     event JobCompleted(uint256 indexed jobId, address indexed evaluator, bytes32 reason);
     event JobRejected(uint256 indexed jobId, address indexed rejector, bytes32 reason);
@@ -79,16 +88,18 @@ contract AgentArena {
     }
 
     // ═══════════════════════════════════════════════════
-    //  ERC-8183 Core Functions
+    //  ERC-8183 Core Functions (with optParams)
     // ═══════════════════════════════════════════════════
 
     /// @notice Create a job. Provider may be zero (set later via setProvider).
+    /// @param providerAgentId Optional ERC-8004 agent ID for the provider
     function createJob(
         address provider,
         address evaluator,
         uint256 budget,
         uint256 expiredAt,
-        bytes32 description
+        string calldata description,
+        uint256 providerAgentId
     ) public returns (uint256 jobId) {
         if (evaluator == address(0)) revert InvalidInput();
         if (expiredAt <= block.timestamp) revert InvalidInput();
@@ -103,12 +114,14 @@ contract AgentArena {
         j.expiredAt = expiredAt;
         j.description = description;
         j.status = Status.Open;
+        j.providerAgentId = provider != address(0) ? providerAgentId : 0;
 
         emit JobCreated(jobId, msg.sender, provider, evaluator, budget, expiredAt, description);
     }
 
     /// @notice Set provider on an Open job (when created with provider=address(0)).
-    function setProvider(uint256 jobId, address provider) external {
+    /// @param agentId ERC-8004 agent identity for the provider
+    function setProvider(uint256 jobId, address provider, uint256 agentId, bytes calldata /* optParams */) external {
         Job storage j = jobs[jobId];
         if (j.status != Status.Open) revert InvalidStatus();
         if (msg.sender != j.client) revert NotAuthorized();
@@ -116,11 +129,12 @@ contract AgentArena {
         if (provider == address(0)) revert InvalidInput();
 
         j.provider = provider;
-        emit ProviderSet(jobId, provider);
+        j.providerAgentId = agentId;
+        emit ProviderSet(jobId, provider, agentId);
     }
 
     /// @notice Set or update budget on an Open job. Client or provider.
-    function setBudget(uint256 jobId, uint256 amount) external {
+    function setBudget(uint256 jobId, uint256 amount, bytes calldata /* optParams */) external {
         Job storage j = jobs[jobId];
         if (j.status != Status.Open) revert InvalidStatus();
         if (msg.sender != j.client && msg.sender != j.provider) revert NotAuthorized();
@@ -130,8 +144,8 @@ contract AgentArena {
         emit BudgetSet(jobId, amount);
     }
 
-    /// @notice Fund an Open job. Pulls budget from client into escrow.
-    function fund(uint256 jobId, uint256 expectedBudget) public {
+    /// @dev Internal fund logic (no calldata restriction for internal calls)
+    function _fund(uint256 jobId, uint256 expectedBudget) internal {
         Job storage j = jobs[jobId];
         if (j.status != Status.Open) revert InvalidStatus();
         if (msg.sender != j.client) revert NotAuthorized();
@@ -144,11 +158,16 @@ contract AgentArena {
         bool ok = paymentToken.transferFrom(msg.sender, address(this), j.budget);
         require(ok, "TRANSFER_FAILED");
 
-        emit JobFunded(jobId, j.budget);
+        emit JobFunded(jobId, msg.sender, j.budget);
+    }
+
+    /// @notice Fund an Open job. Pulls budget from client into escrow.
+    function fund(uint256 jobId, uint256 expectedBudget, bytes calldata /* optParams */) external nonReentrant {
+        _fund(jobId, expectedBudget);
     }
 
     /// @notice Provider submits deliverable on a Funded job.
-    function submit(uint256 jobId, bytes32 deliverable) external {
+    function submit(uint256 jobId, bytes32 deliverable, bytes calldata /* optParams */) external nonReentrant {
         Job storage j = jobs[jobId];
         if (j.status != Status.Funded) revert InvalidStatus();
         if (msg.sender != j.provider) revert NotAuthorized();
@@ -162,7 +181,7 @@ contract AgentArena {
     }
 
     /// @notice Evaluator completes a Submitted job. Pays provider.
-    function complete(uint256 jobId, bytes32 reason) public {
+    function complete(uint256 jobId, bytes32 reason, bytes calldata /* optParams */) public nonReentrant {
         Job storage j = jobs[jobId];
         if (j.status != Status.Submitted) revert InvalidStatus();
         if (msg.sender != j.evaluator) revert NotAuthorized();
@@ -176,7 +195,7 @@ contract AgentArena {
     }
 
     /// @notice Reject a job. Client when Open, evaluator when Funded/Submitted.
-    function reject(uint256 jobId, bytes32 reason) public {
+    function reject(uint256 jobId, bytes32 reason, bytes calldata /* optParams */) public nonReentrant {
         Job storage j = jobs[jobId];
 
         if (j.status == Status.Open) {
@@ -194,7 +213,7 @@ contract AgentArena {
     }
 
     /// @notice Refund expired job. Anyone can call after expiry.
-    function claimRefund(uint256 jobId) external {
+    function claimRefund(uint256 jobId) external nonReentrant {
         Job storage j = jobs[jobId];
         if (j.status != Status.Funded && j.status != Status.Submitted) revert InvalidStatus();
         if (block.timestamp < j.expiredAt) revert NotExpired();
@@ -212,31 +231,33 @@ contract AgentArena {
     // ═══════════════════════════════════════════════════
 
     /// @notice Create a battle: two paired ERC-8183 jobs. Winner takes all.
-    ///         Client must have approved totalBudget of paymentToken to this contract.
+    /// @param agentIdA ERC-8004 agent ID for provider A
+    /// @param agentIdB ERC-8004 agent ID for provider B
     function createBattle(
         address providerA,
         address providerB,
         address evaluator,
         uint256 totalBudget,
         uint256 expiredAt,
-        bytes32 description
-    ) external returns (uint256 battleId, uint256 jobIdA, uint256 jobIdB) {
+        string calldata description,
+        uint256 agentIdA,
+        uint256 agentIdB
+    ) external nonReentrant returns (uint256 battleId, uint256 jobIdA, uint256 jobIdB) {
         if (providerA == address(0) || providerB == address(0)) revert InvalidInput();
         if (providerA == providerB) revert InvalidInput();
         if (totalBudget == 0) revert InvalidInput();
 
         uint256 halfBudget = totalBudget / 2;
         if (halfBudget == 0) revert InvalidInput();
-        // Ensure no dust (odd amounts lose 1 wei)
         uint256 actualTotal = halfBudget * 2;
 
-        // Create two standard ERC-8183 jobs
-        jobIdA = createJob(providerA, evaluator, halfBudget, expiredAt, description);
-        jobIdB = createJob(providerB, evaluator, halfBudget, expiredAt, description);
+        // Create two standard ERC-8183 jobs with ERC-8004 agent IDs
+        jobIdA = createJob(providerA, evaluator, halfBudget, expiredAt, description, agentIdA);
+        jobIdB = createJob(providerB, evaluator, halfBudget, expiredAt, description, agentIdB);
 
         // Fund both (pulls actualTotal from client)
-        fund(jobIdA, halfBudget);
-        fund(jobIdB, halfBudget);
+        _fund(jobIdA, halfBudget);
+        _fund(jobIdB, halfBudget);
 
         battleId = ++battleCount;
         Battle storage b = battles[battleId];
@@ -253,12 +274,11 @@ contract AgentArena {
     }
 
     /// @notice Evaluator resolves a battle. Winner takes full prize.
-    ///         Both jobs must be in Submitted status.
     function resolveBattle(
         uint256 battleId,
         uint256 winnerJobId,
         bytes32 reason
-    ) external {
+    ) external nonReentrant {
         Battle storage b = battles[battleId];
         if (b.resolved) revert BattleAlreadyResolved();
         if (b.client == address(0)) revert InvalidInput();
@@ -281,15 +301,12 @@ contract AgentArena {
 
         b.resolved = true;
 
-        // Winner: Completed, receives full prize
         winner.status = Status.Completed;
         emit JobCompleted(winnerJobId, msg.sender, reason);
 
-        // Loser: Rejected (no refund — funds go to winner)
         loser.status = Status.Rejected;
         emit JobRejected(loserJobId, msg.sender, reason);
 
-        // Transfer entire escrowed amount to winner
         bool ok = paymentToken.transfer(winner.provider, b.totalBudget);
         require(ok, "TRANSFER_FAILED");
 
@@ -306,12 +323,13 @@ contract AgentArena {
         address evaluator,
         uint256 budget,
         uint256 expiredAt,
-        bytes32 description,
+        string memory description,
         bytes32 deliverable,
-        Status status
+        Status status,
+        uint256 providerAgentId
     ) {
         Job storage j = jobs[jobId];
-        return (j.client, j.provider, j.evaluator, j.budget, j.expiredAt, j.description, j.deliverable, j.status);
+        return (j.client, j.provider, j.evaluator, j.budget, j.expiredAt, j.description, j.deliverable, j.status, j.providerAgentId);
     }
 
     function getBattle(uint256 battleId) external view returns (
