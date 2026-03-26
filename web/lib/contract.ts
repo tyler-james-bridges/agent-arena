@@ -2,7 +2,7 @@ import { createPublicClient, http, formatUnits, type Address } from 'viem';
 import { abstract } from 'viem/chains';
 import abi from '../abi.json';
 
-export const CONTRACT_ADDRESS = '0x909eA494272CDcDeD08dDe7601fb2F548bcF1F7e' as const;
+export const CONTRACT_ADDRESS = '0xAfbD99288D78Db7C18ca78B2A695Ba2d13f7f706' as const;
 export const USDC_ADDRESS = '0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1' as const;
 export const ABSCAN_TX = 'https://abscan.org/tx';
 export const ABSCAN_ADDR = 'https://abscan.org/address';

@@ -12,3 +12,5 @@ web/.next/
 
 # OS
 .DS_Store
+V4_SPEC.md
+demo/
