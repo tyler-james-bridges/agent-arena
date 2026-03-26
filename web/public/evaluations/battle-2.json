@@ -1,0 +1,22 @@
+{
+    "battleId": 2,
+    "evaluator": "0x668aDd9213985E7Fd613Aec87767C892f4b9dF1c",
+    "winner": "0xf2471d8537Fc7dEEB151dDf3C95E6A5eB21Fa453",
+    "loser": "0x99cc42E4c05fDD3154A15072a729B011F962d9c9",
+    "scores": {
+        "agentA": {
+            "correctness": 45,
+            "speed": 22,
+            "compliance": 15,
+            "total": 82
+        },
+        "agentB": {
+            "correctness": 40,
+            "speed": 18,
+            "compliance": 16,
+            "total": 74
+        }
+    },
+    "reasoning": "Agent A delivered a more accurate solution with faster response time. Agent B had slightly better rule compliance but could not overcome the correctness and speed deficit.",
+    "timestamp": "2026-03-26T16:30:00Z"
+}

@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation';
+import { readFile } from 'fs/promises';
+import path from 'path';
 import {
   getBattleCount,
   getBattleWithJobs,
   formatUSDC,
   truncateAddress,
   bytes32ToString,
+  truncateBytes32,
   getBattleStatus,
   getWinnerJobId,
   JOB_STATUS,
@@ -14,6 +17,15 @@ import {
   contractConfig,
 } from '@/lib/contract';
 import type { Metadata } from 'next';
+
+type EvaluationData = {
+  scores?: {
+    correctness?: { agentA?: number; agentB?: number };
+    speed?: { agentA?: number; agentB?: number };
+    compliance?: { agentA?: number; agentB?: number };
+  };
+  reasoning?: string;
+};
 
 export const revalidate = 30;
 
@@ -164,6 +176,21 @@ export default async function BattlePage({ params }: Props) {
   };
 
   const resolveReason = battleResolvedLogs[0]?.args?.reason as string | undefined;
+  const hasAttestation = resolveReason && resolveReason !== '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+  // Load evaluation JSON if available
+  let evaluation: EvaluationData | null = null;
+  try {
+    const evalPath = path.join(process.cwd(), 'public', 'evaluations', `battle-${battleId}.json`);
+    const raw = await readFile(evalPath, 'utf-8');
+    evaluation = JSON.parse(raw);
+  } catch {
+    // no evaluation file found
+  }
+
+  // Safely display description (bytes32 from contract)
+  const descriptionRaw = jobA.description;
+  const description = descriptionRaw ? bytes32ToString(descriptionRaw) : '';
 
   return (
     <>
@@ -214,6 +241,14 @@ export default async function BattlePage({ params }: Props) {
           <div className="value">Abstract</div>
         </div>
       </div>
+
+      {description && (
+        <div className="wrap">
+          <div style={{ padding: '12px 16px', fontSize: '14px', color: '#666', borderBottom: '2px solid #000' }}>
+            {description}
+          </div>
+        </div>
+      )}
 
       <div className="wrap">
         <section className="section" id="replay">
@@ -282,26 +317,66 @@ export default async function BattlePage({ params }: Props) {
           <div className="versus">
             <div className={`bot-card ${isAWinner ? 'winner' : isBWinner ? 'loser' : ''}`}>
               <div className="bot-label">Agent A</div>
-              <div className="bot-name">Agent A</div>
-              <div className="bot-addr mono">{truncateAddress(jobA.provider)}</div>
-              <div className="bot-score">{isAWinner ? formatUSDC(battle.totalBudget) : '$0'}</div>
+              <div className="bot-name mono">{truncateAddress(jobA.provider)}</div>
+              <div className="bot-addr mono">{jobA.provider}</div>
+              <div className="bot-score">{isAWinner ? formatUSDC(battle.totalBudget) : '\u2014'}</div>
               {isAWinner && <div className="winner-tag">Winner</div>}
               {isBWinner && <div className="loser-tag">Defeated</div>}
             </div>
             <div className="vs-divider">VS</div>
             <div className={`bot-card ${isBWinner ? 'winner' : isAWinner ? 'loser' : ''}`}>
               <div className="bot-label">Agent B</div>
-              <div className="bot-name">Agent B</div>
-              <div className="bot-addr mono">{truncateAddress(jobB.provider)}</div>
-              <div className="bot-score">{isBWinner ? formatUSDC(battle.totalBudget) : '$0'}</div>
+              <div className="bot-name mono">{truncateAddress(jobB.provider)}</div>
+              <div className="bot-addr mono">{jobB.provider}</div>
+              <div className="bot-score">{isBWinner ? formatUSDC(battle.totalBudget) : '\u2014'}</div>
               {isBWinner && <div className="winner-tag">Winner</div>}
               {isAWinner && <div className="loser-tag">Defeated</div>}
             </div>
           </div>
-          {resolveReason && resolveReason !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
+          {hasAttestation && (
             <p className="mono" style={{ marginTop: '12px', fontSize: '12px', color: '#888', wordBreak: 'break-all' }}>
-              <strong style={{ color: '#555' }}>Attestation:</strong> {resolveReason}
+              <strong style={{ color: '#555' }}>Attestation:</strong> {truncateBytes32(resolveReason)}
             </p>
+          )}
+          {evaluation?.scores && (
+            <table className="breakdown-table" style={{ marginTop: '16px' }}>
+              <thead>
+                <tr>
+                  <th>Criteria</th>
+                  <th>Agent A</th>
+                  <th>Agent B</th>
+                </tr>
+              </thead>
+              <tbody>
+                {evaluation.scores.correctness && (
+                  <tr>
+                    <td>Correctness</td>
+                    <td className={`score ${isAWinner ? 'win' : isBWinner ? 'lose' : ''}`}>{evaluation.scores.correctness.agentA ?? '\u2014'}</td>
+                    <td className={`score ${isBWinner ? 'win' : isAWinner ? 'lose' : ''}`}>{evaluation.scores.correctness.agentB ?? '\u2014'}</td>
+                  </tr>
+                )}
+                {evaluation.scores.speed && (
+                  <tr>
+                    <td>Speed</td>
+                    <td className={`score ${isAWinner ? 'win' : isBWinner ? 'lose' : ''}`}>{evaluation.scores.speed.agentA ?? '\u2014'}</td>
+                    <td className={`score ${isBWinner ? 'win' : isAWinner ? 'lose' : ''}`}>{evaluation.scores.speed.agentB ?? '\u2014'}</td>
+                  </tr>
+                )}
+                {evaluation.scores.compliance && (
+                  <tr>
+                    <td>Compliance</td>
+                    <td className={`score ${isAWinner ? 'win' : isBWinner ? 'lose' : ''}`}>{evaluation.scores.compliance.agentA ?? '\u2014'}</td>
+                    <td className={`score ${isBWinner ? 'win' : isAWinner ? 'lose' : ''}`}>{evaluation.scores.compliance.agentB ?? '\u2014'}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+          {evaluation?.reasoning && (
+            <div style={{ marginTop: '12px', fontSize: '13px', color: '#555', lineHeight: '1.6', padding: '12px', border: '2px solid #000', background: '#fafafa' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.1em', color: '#888', marginBottom: '6px' }}>Evaluation Reasoning</div>
+              {evaluation.reasoning}
+            </div>
           )}
         </section>
 

@@ -28,17 +28,27 @@ export function truncateAddress(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+export function truncateBytes32(hex: string): string {
+  if (!hex || hex.length <= 14) return hex || '';
+  return `${hex.slice(0, 8)}...${hex.slice(-4)}`;
+}
+
 export function bytes32ToString(hex: string): string {
   try {
-    const clean = hex.replace(/0x/, '').replace(/00+$/, '');
+    if (!hex || /^0x0*$/.test(hex)) return '';
+    const clean = hex.replace(/^0x/, '').replace(/00+$/, '');
     if (!clean) return '';
-    const bytes = [];
+    const bytes: number[] = [];
     for (let i = 0; i < clean.length; i += 2) {
       bytes.push(parseInt(clean.substring(i, i + 2), 16));
     }
-    return new TextDecoder().decode(new Uint8Array(bytes));
+    // Only decode if all bytes are printable ASCII (0x20-0x7E)
+    if (bytes.every(b => b >= 0x20 && b <= 0x7e)) {
+      return new TextDecoder().decode(new Uint8Array(bytes));
+    }
+    return truncateBytes32(hex);
   } catch {
-    return hex;
+    return truncateBytes32(hex);
   }
 }
 
