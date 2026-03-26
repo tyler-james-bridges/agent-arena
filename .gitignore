@@ -1,0 +1,14 @@
+# Env
+.env
+
+# Foundry
+cache/
+out/
+broadcast/
+
+# Node
+web/node_modules/
+web/.next/
+
+# OS
+.DS_Store
