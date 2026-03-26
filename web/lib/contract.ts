@@ -62,6 +62,7 @@ export type JobData = {
   deliverable: string;
   status: number;
   providerAgentId: bigint;
+  hook: string;
 };
 
 export async function getBattleCount(): Promise<number> {
@@ -94,7 +95,7 @@ export async function getJob(jobId: bigint): Promise<JobData> {
     ...contractConfig,
     functionName: 'getJob',
     args: [jobId],
-  }) as [string, string, string, bigint, bigint, string, string, number, bigint];
+  }) as [string, string, string, bigint, bigint, string, string, number, bigint, string];
   return {
     client: result[0],
     provider: result[1],
@@ -105,6 +106,7 @@ export async function getJob(jobId: bigint): Promise<JobData> {
     deliverable: result[6],
     status: result[7],
     providerAgentId: result[8],
+    hook: result[9],
   };
 }
 

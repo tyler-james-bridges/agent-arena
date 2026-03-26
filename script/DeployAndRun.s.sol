@@ -55,7 +55,8 @@ contract RunBattle is Script {
             block.timestamp + deadlineSeconds,
             string(abi.encodePacked(description)),
             0, // agentIdA (ERC-8004)
-            0  // agentIdB (ERC-8004)
+            0, // agentIdB (ERC-8004)
+            address(0) // hook
         );
         vm.stopBroadcast();
 

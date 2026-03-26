@@ -95,7 +95,7 @@
         "internalType": "bytes32"
       },
       {
-        "name": "",
+        "name": "optParams",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -146,6 +146,11 @@
         "name": "agentIdB",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "hook",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
@@ -200,6 +205,11 @@
         "name": "providerAgentId",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "hook",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [
@@ -226,7 +236,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "",
+        "name": "optParams",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -333,6 +343,11 @@
         "name": "providerAgentId",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "hook",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -424,6 +439,11 @@
         "name": "providerAgentId",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "hook",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "view"
@@ -456,7 +476,7 @@
         "internalType": "bytes32"
       },
       {
-        "name": "",
+        "name": "optParams",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -502,7 +522,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "",
+        "name": "optParams",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -530,7 +550,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "",
+        "name": "optParams",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -553,7 +573,7 @@
         "internalType": "bytes32"
       },
       {
-        "name": "",
+        "name": "optParams",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -724,6 +744,12 @@
         "type": "string",
         "indexed": false,
         "internalType": "string"
+      },
+      {
+        "name": "hook",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       }
     ],
     "anonymous": false
@@ -818,6 +844,31 @@
   },
   {
     "type": "event",
+    "name": "PaymentReleased",
+    "inputs": [
+      {
+        "name": "jobId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "provider",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "ProviderSet",
     "inputs": [
       {
@@ -842,6 +893,31 @@
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "Refunded",
+    "inputs": [
+      {
+        "name": "jobId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "client",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
     "type": "error",
     "name": "AlreadyExpired",
     "inputs": []
@@ -854,6 +930,11 @@
   {
     "type": "error",
     "name": "BudgetMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "HookNotSupported",
     "inputs": []
   },
   {
