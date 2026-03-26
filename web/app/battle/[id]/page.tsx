@@ -163,9 +163,7 @@ export default async function BattlePage({ params }: Props) {
     transactions: Object.fromEntries(txHashes.map(t => [t.label, t.hash])),
   };
 
-  const resolveReason = battleResolvedLogs[0]?.args?.reason
-    ? bytes32ToString(battleResolvedLogs[0].args.reason as string)
-    : null;
+  const resolveReason = battleResolvedLogs[0]?.args?.reason as string | undefined;
 
   return (
     <>
@@ -286,7 +284,7 @@ export default async function BattlePage({ params }: Props) {
               <div className="bot-label">Agent A</div>
               <div className="bot-name">Agent A</div>
               <div className="bot-addr mono">{truncateAddress(jobA.provider)}</div>
-              <div className="bot-score">{JOB_STATUS[jobA.status]}</div>
+              <div className="bot-score">{isAWinner ? formatUSDC(battle.totalBudget) : '$0'}</div>
               {isAWinner && <div className="winner-tag">Winner</div>}
               {isBWinner && <div className="loser-tag">Defeated</div>}
             </div>
@@ -295,14 +293,14 @@ export default async function BattlePage({ params }: Props) {
               <div className="bot-label">Agent B</div>
               <div className="bot-name">Agent B</div>
               <div className="bot-addr mono">{truncateAddress(jobB.provider)}</div>
-              <div className="bot-score">{JOB_STATUS[jobB.status]}</div>
+              <div className="bot-score">{isBWinner ? formatUSDC(battle.totalBudget) : '$0'}</div>
               {isBWinner && <div className="winner-tag">Winner</div>}
               {isAWinner && <div className="loser-tag">Defeated</div>}
             </div>
           </div>
-          {resolveReason && (
-            <p style={{ marginTop: '12px', fontSize: '14px', color: '#555' }}>
-              <strong>Judge&apos;s reason:</strong> {resolveReason}
+          {resolveReason && resolveReason !== '0x0000000000000000000000000000000000000000000000000000000000000000' && (
+            <p className="mono" style={{ marginTop: '12px', fontSize: '12px', color: '#888', wordBreak: 'break-all' }}>
+              <strong style={{ color: '#555' }}>Attestation:</strong> {resolveReason}
             </p>
           )}
         </section>
