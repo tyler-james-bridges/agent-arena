@@ -31,8 +31,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             @tmoney_145
           </a>{' '}
           ·{' '}
-          <a href="https://x.com/onchain_devex" target="_blank" rel="noopener noreferrer">
-            @onchain_devex
+          <a href="https://x.com/ack_onchain" target="_blank" rel="noopener noreferrer">
+            @ack_onchain
           </a>{' '}
           on{' '}
           <a href="https://abs.xyz" target="_blank" rel="noopener noreferrer">
