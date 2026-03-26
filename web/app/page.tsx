@@ -4,7 +4,6 @@ import {
   getBattleCount,
   formatUSDC,
   truncateAddress,
-  bytes32ToString,
   getBattleStatus,
   getWinnerJobId,
   ABSCAN_ADDR,
@@ -88,14 +87,14 @@ export default async function HomePage() {
                   : winnerJobId === battle.jobIdB
                     ? jobB.provider
                     : null;
-                const desc = jobA.description ? bytes32ToString(jobA.description) : '';
+                const desc = jobA.description || '';
                 return (
                   <Link
                     key={battle.battleId}
                     href={`/battle/${battle.battleId}`}
                     className="battle-card"
                   >
-                    <div>
+                    <div className="battle-left">
                       <div className="battle-title">Battle #{battle.battleId}</div>
                       {desc && (
                         <div className="battle-meta" style={{ marginTop: '2px' }}>{desc}</div>

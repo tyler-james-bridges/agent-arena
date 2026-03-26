@@ -6,7 +6,6 @@ import {
   getBattleWithJobs,
   formatUSDC,
   truncateAddress,
-  bytes32ToString,
   truncateBytes32,
   getBattleStatus,
   getWinnerJobId,
@@ -190,7 +189,7 @@ export default async function BattlePage({ params }: Props) {
 
   // Safely display description (bytes32 from contract)
   const descriptionRaw = jobA.description;
-  const description = descriptionRaw ? bytes32ToString(descriptionRaw) : '';
+  const description = descriptionRaw || '';
 
   return (
     <>

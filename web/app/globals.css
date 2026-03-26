@@ -10,6 +10,13 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0 }
+html { scroll-behavior: smooth }
+
+/* Focus styles for keyboard nav */
+a:focus-visible, summary:focus-visible, button:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
 
 body {
   background: #fff;
@@ -45,8 +52,8 @@ nav .logo {
 nav .links { display: flex; gap: 6px }
 nav .links a {
   border: 2px solid #000;
-  padding: 5px 12px;
-  font-size: 11px;
+  padding: 8px 16px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -55,8 +62,10 @@ nav .links a {
   transition: background .15s, color .15s;
 }
 nav .links a:hover { background: #000; color: #fff }
+nav .links a:active { background: #333; color: #fff }
 nav .links a.filled { background: #000; color: #fff }
 nav .links a.filled:hover { background: #333 }
+nav .links a.filled:active { background: #555 }
 
 /* HERO */
 .hero {
@@ -91,8 +100,8 @@ nav .links a.filled:hover { background: #333 }
 }
 .hero .cta-row a {
   border: 2px solid #000;
-  padding: 10px 20px;
-  font-size: 13px;
+  padding: 12px 24px;
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -102,7 +111,9 @@ nav .links a.filled:hover { background: #333 }
 }
 .hero .cta-row a.primary { background: #000; color: #fff }
 .hero .cta-row a.primary:hover { background: #333 }
+.hero .cta-row a.primary:active { background: #555 }
 .hero .cta-row a:hover { background: #000; color: #fff }
+.hero .cta-row a:active { background: #333; color: #fff }
 
 /* STATUS BAR */
 .status-bar {
@@ -266,12 +277,16 @@ nav .links a.filled:hover { background: #333 }
   margin-bottom: -2px;
 }
 .battle-card:hover { background: #000; color: #fff }
-.battle-card:hover .battle-meta { color: rgba(255,255,255,0.6) }
+.battle-card:active { background: #333; color: #fff }
+.battle-card:hover .battle-meta,
+.battle-card:active .battle-meta { color: rgba(255,255,255,0.6) }
+.battle-card .battle-left { min-width: 0; flex: 1 }
 .battle-card .battle-title { font-weight: 800; font-size: 15px }
 .battle-card .battle-meta {
   font-size: 12px;
   color: #888;
   margin-top: 2px;
+  word-break: break-word;
 }
 .battle-card .battle-right { text-align: right; flex-shrink: 0 }
 .battle-card .battle-prize {
@@ -279,15 +294,18 @@ nav .links a.filled:hover { background: #333 }
   font-size: 15px;
 }
 .battle-card .battle-status {
-  font-size: 11px;
+  display: inline-block;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-top: 2px;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border: 1.5px solid currentColor;
 }
 .battle-card .battle-status.resolved { color: var(--win-dark) }
 .battle-card:hover .battle-status.resolved { color: var(--win-light) }
-.battle-card .battle-status.open { color: #888 }
+.battle-card .battle-status.open { color: #aaa }
 .battle-card .battle-status.in-progress { color: #d97706 }
 
 /* HOW IT WORKS GRID */
@@ -306,7 +324,7 @@ nav .links a.filled:hover { background: #333 }
 .how-cell .how-num {
   font-size: 24px;
   font-weight: 900;
-  color: #ccc;
+  color: #999;
 }
 .how-cell .how-title {
   font-weight: 800;
@@ -373,6 +391,12 @@ nav .links a.filled:hover { background: #333 }
   font-size: 14px;
   line-height: 1.6;
   color: #444;
+  animation: fadeIn .2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px) }
+  to { opacity: 1; transform: translateY(0) }
 }
 
 /* PROOF */
@@ -407,6 +431,7 @@ nav .links a.filled:hover { background: #333 }
 }
 .proof-link:last-child { border-bottom: none }
 .proof-link:hover { background: #000; color: #fff }
+.proof-link:active { background: #333; color: #fff }
 .proof-link .proof-label {
   font-weight: 700;
   font-size: 11px;
@@ -524,10 +549,23 @@ footer a {
   .bot-card .bot-score { font-size: 40px }
   .breakdown-table td.score { width: 55px; padding: 8px 6px }
   .proof-link { flex-direction: column; align-items: flex-start; gap: 2px }
+  .bot-card .bot-addr { font-size: 10px }
   .how-grid { grid-template-columns: 1fr }
   .how-cell { border-right: none }
   .how-cell:nth-child(n+1) { border-bottom: 2px solid #000 }
   .how-cell:last-child { border-bottom: none }
+}
+
+/* ===== TABLET ===== */
+@media (min-width: 640px) and (max-width: 899px) {
+  .hero h1 { font-size: 32px }
+  .hero { padding: 48px 20px 36px }
+  .section { padding: 40px 20px }
+  .status-bar .cell { padding: 14px 20px }
+  .status-bar .value { font-size: 20px }
+  .bot-card { padding: 24px }
+  .bot-card .bot-score { font-size: 56px }
+  .bot-card .bot-name { font-size: 18px }
 }
 
 /* ===== DESKTOP ===== */
