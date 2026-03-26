@@ -27,6 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <footer>
           Built by{' '}
+          <a href="https://x.com/tmoney_145" target="_blank" rel="noopener noreferrer">
+            @tmoney_145
+          </a>{' '}
+          ·{' '}
           <a href="https://x.com/onchain_devex" target="_blank" rel="noopener noreferrer">
             @onchain_devex
           </a>{' '}
