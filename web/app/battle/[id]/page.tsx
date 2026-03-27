@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { readFile } from 'fs/promises';
 import path from 'path';
+import HashVerifier from './HashVerifier';
 import {
   getBattleCount,
   getBattleWithJobs,
@@ -333,9 +334,12 @@ export default async function BattlePage({ params }: Props) {
             </div>
           </div>
           {hasAttestation && (
-            <p className="mono" style={{ marginTop: '12px', fontSize: '12px', color: '#888', wordBreak: 'break-all' }}>
-              <strong style={{ color: '#555' }}>Attestation:</strong> {truncateBytes32(resolveReason)}
-            </p>
+            <>
+              <p className="mono" style={{ marginTop: '12px', fontSize: '12px', color: '#888', wordBreak: 'break-all' }}>
+                <strong style={{ color: '#555' }}>Attestation:</strong> {truncateBytes32(resolveReason)}
+              </p>
+              <HashVerifier battleId={battleId} onchainHash={resolveReason} />
+            </>
           )}
           {evaluation?.scores && (
             <table className="breakdown-table" style={{ marginTop: '16px' }}>
